@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>KGISL</title>
+    <h1>Siting List</h1>
+</head>
+<body>
+<div>
+    <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12">
+            <table id="example" class="table text-center">
+                <thead class="thead-inverse">
+                <tr>
+                    <th>Animal</th>
+                    <th>Breed</th>
+                    <th>Date</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for list in sittinglist %}
+                <tr>
+                    <td style="width:20%">{{ list.animals_list.name }}</td>
+                    <td>{{ list.breeds_list.name }}</td>
+                    <td>{{ list.date }}</td>
+                    <td>
+                        <button name="action" class="btn btn-danger myButton" id="delete" data-id={{ list.id }}>Delete
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <input type="button" value="New" id="b"
+                   class="btn btn-success add-form-row">&nbsp;&nbsp;
+
+
+            <div id="data">
+                <form name="myForm" method="post" id="testForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-sm-12">
+
+                        </div>
+                    </div>
+                    <br>
+                    <div class="row" id="animal">
+                        <div class="col-sm-1 col-sm-offset-2">{{ form.animal.label }}<span
+                                class="required">*</span></div>
+                        <div class="col-sm-2">{{ form.animal }}</div>
+                        <div class="col-sm-1 required" id="animal_id">{{ form.animal.errors }}</div>
+                    </div>
+                    <br>
+                    <div class="row" id="breed">
+                        <div class="col-sm-1 col-sm-offset-2">{{ form.breed.label }}<span
+                                class="required">*</span></div>
+                        <div class="col-sm-2">{{ form.breed }}</div>
+                        <div class="col-sm-1 required" id="breed_id">{{ form.breed.errors }}</div>
+                    </div>
+                    <br>
+                    <div class="row" id="date">
+                        <div class="col-sm-1 col-sm-offset-2">{{ form.date.label }}</div>
+                        <div class="col-sm-2">
+                            {{ form.date }}
+                        </div>
+                        <div class="col-sm-1 required" id="date_id">{{ form.date.errors }}</div>
+                    </div>
+                    <br>
+                    <div id="formdata"></div>
+
+
+                    <div class="row">
+                       <div class="col-sm-1" id="sub"><input type="submit" name="submit" value="Save"
+                                                          class="btn btn-primary"/></div>
+
+
+                    <div class="col-sm-1" id="cancel"><input name="cancel" value="Cancel"
+                                                             class="btn btn-warning"/></div>
+                    </div>
+
+                    <div style="color:red;" id="msg_id"></div>
+
+
+                </form>
+            </div>
+
+
+</body>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://jonthornton.github.io/jquery-timepicker/jquery.timepicker.css">
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+
+<link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.css">
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
+
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#example').DataTable({
+            paging: true,
+            mark: true
+        });
+
+        pageLoadplay();
+
+        function pageLoadplay() {
+            $(".text1").hide();
+            $("#animal").hide();
+            $("#breed").hide();
+            $("#date").hide();
+            $("#sub").hide();
+            $("#cancel").hide();
+        }
+
+        function newClickplay() {
+            $("#animal").show();
+            $("#sub").show();
+            $("#cancel").show();
+            $("#data").show();
+        }
+
+        $(".add-form-row").click(function () {
+            newClickplay();
+        });
+
+        function cancelClickplay() {
+            $('#testForm')[0].reset();
+            pageLoadplay();
+        }
+
+        $("#cancel").click(function () {
+            cancelClickplay();
+        });
+
+
+        $('#animal').on('change', function (e) {
+            e.preventDefault();
+            $("#breed").show();
+            var animal = $("#id_animal").val();
+            var url = '/animalslist/breeds/';
+            if (animal !== undefined && animal) {
+                $.ajax({
+                    url: url,
+                    data: {
+                        'animal': animal
+                    },
+                    success: function (data) {
+                        $("#id_breed").html(data);
+                        $("#id_breed").trigger("chosen:updated");
+                    }
+                });
+            } else {
+                $("#breed").hide();
+            }
+        });
+
+        $("#breed").on('change', function (e) {
+            $("#date").show();
+            $("#id_date").datepicker({
+                dateFormat: 'yy-mm-dd',
+                maxDate: "+5Y"
+            }).val();
+        });
+
+
+        $('.myButton').click(function (event) {
+            event.preventDefault();
+            var value = $(this).attr('data-id');
+            var url = '/animalslist/delete/';
+            $.ajax({
+                url: url,
+                data: {
+                    'value': value
+                },
+                success: function (data) {
+                    window.location.href=window.location.href;
+
+                }
+
+            });
+            window.location.href=window.location.href;
+
+        });
+
+        function validate() {
+            var anml = $('#id_animal').val();
+            var bde = $('#id_breed').val();
+            var date = $('#id_date').val();
+            if (!$.trim(anml)) {
+                return 'animal';
+            }
+            if (bde == undefined || bde == 'null') {
+                return 'breed';
+            }
+            if (date == undefined || date == '') {
+                return 'date';
+            }
+            return 'success';
+        }
+
+        $("#testForm").submit(function (e) {
+            e.preventDefault();
+            var val = validate();
+            if (val == 'animal') {
+                $('#animal_id').empty().append('Please Select Animal')
+                $('#animal').css({
+                    color: "red"
+                });
+            }
+            if (val == 'breed') {
+                $('#breed_id').empty().append('Breed Name is required!');
+                $('#breed').css({
+                    color: "red"
+                });
+            }
+            if (val == 'date') {
+                $('#date_id').empty().append('Please enter a valid date');
+                $('#date').css({
+                    color: "red"
+                });
+            }
+
+            if (val == 'success') {
+                var animal = $('#id_animal').val();
+                var breed = $('#id_breed').val();
+                var date = $('#id_date').val();
+                var url = '/animalslist/create/';
+                $.ajax({
+                    url: url,
+                    data: {
+                        'animal': animal,
+                        'breed': breed,
+                        'date': date,
+                    },
+                    success: function (data) {
+                        window.location.href=window.location.href;
+
+                    }
+                });
+
+
+            }
+
+        });
+
+    });
+
+</script>
+
+</html>
